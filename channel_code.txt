@@ -1,0 +1,11 @@
+# KBS Channel Codes
+
+KBS1 = 11
+KBS2 = 12
+KBS World = 14
+KBS24 = 81
+KBS Drama = N91
+KBS Joy = N92
+KBS Life = N93
+KBS Story = N94
+KBS Kids = N96
