@@ -6,7 +6,7 @@ import time
 import os
 
 def get_korean_proxies():
-    """Collecting Proxy from proxydb.net""
+    """Collecting Proxy from proxydb.net"""
     url = 'http://proxydb.net/?country=KR'
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
     
@@ -14,7 +14,7 @@ def get_korean_proxies():
         response = requests.get(url, headers=headers, timeout=15)
         soup = BeautifulSoup(response.text, 'html.parser')
     except Exception as e:
-        print(f" Failed to fetch proxies: {e}")
+        print(f"Failed to fetch proxies: {e}")
         return []
     
     proxies = []
@@ -61,20 +61,20 @@ def test_kbs_with_proxy(proxy):
 
 def find_working_proxy(proxies):
     """Finding Working Proxy"""
-    print("\n Testing proxies with KBS API...")
+    print("\nTesting proxies with KBS API...")
     
     for proxy in proxies:
         print(f"   Testing {proxy}...", end=' ')
         if test_kbs_with_proxy(proxy):
-            print(" WORKING!")
+            print("WORKING!")
             return proxy
         else:
-            print(" Failed")
+            print("Failed")
     
     return None
 
 def load_channel_codes():
-    """channel_code.txt ফাইল থেকে চ্যানেল লোড করা"""
+    """Load channels from channel_code.txt file"""
     channels = {}
     
     if os.path.exists('channel_code.txt'):
@@ -106,7 +106,7 @@ def load_channel_codes():
     return channels
 
 def save_channel_codes(channels):
-    """Saving channel_code.txt"""
+    """Saving channel_code.txt file"""
     with open('channel_code.txt', 'w', encoding='utf-8') as f:
         f.write("# KBS Channel Codes\n")
         f.write("# Format: CHANNEL_NAME = CODE\n\n")
@@ -115,7 +115,7 @@ def save_channel_codes(channels):
             f.write(f"{name} = {code}\n")
 
 def fetch_channel_data(proxy, channels):
-    """Fetching All Channels"""
+    """Fetching all channel data from KBS API"""
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -127,7 +127,7 @@ def fetch_channel_data(proxy, channels):
     channel_data = []
     active_count = 0
     
-    print("\n Fetching channel data...")
+    print("\nFetching channel data...")
     
     for code, name in channels.items():
         url = f'https://cfpwwwapi.kbs.co.kr/api/v1/landing/live/channel_code/{code}'
@@ -175,7 +175,7 @@ def fetch_channel_data(proxy, channels):
     return channel_data, active_count
 
 def create_json_m3u(channel_data):
-    """JSON M3U Format"""
+    """Create JSON format M3U playlist"""
     json_m3u = []
     for ch in channel_data:
         if ch['active']:
@@ -189,7 +189,7 @@ def create_json_m3u(channel_data):
     return json_m3u
 
 def create_extvlcopt_m3u(channel_data, active_count):
-    """EXTVLCOPT M3U Format"""
+    """Create EXTVLCOPT format M3U playlist"""
     now = datetime.now()
     
     m3u = '#EXTM3U\n'
@@ -207,7 +207,7 @@ def create_extvlcopt_m3u(channel_data, active_count):
     return m3u
 
 def create_kbs_data_json(channel_data, proxy_used):
-    """kbs-data.json Format"""
+    """Create kbs-data.json file with all channel data"""
     return {
         'generated_at': datetime.now().isoformat(),
         'proxy_used': proxy_used,
@@ -218,41 +218,41 @@ def create_kbs_data_json(channel_data, proxy_used):
 
 def main():
     print("=" * 70)
-    print(" KBS STREAM FETCHER - GitHub Actions")
+    print("KBS STREAM FETCHER - GitHub Actions")
     print("=" * 70)
     
-    # লোড চ্যানেল কোড
-    print("\n Loading channel codes...")
+    # Load channel codes
+    print("\nLoading channel codes...")
     channels = load_channel_codes()
     print(f"   Total: {len(channels)} channels")
     
-    # প্রক্সি সংগ্রহ
-    print("\n Fetching Korean proxies...")
+    # Get proxies
+    print("\nFetching Korean proxies...")
     proxies = get_korean_proxies()
     print(f"   Found {len(proxies)} proxies")
     
     if not proxies:
-        print(" No proxies found!")
+        print("No proxies found!")
         return
     
-    # কাজ করা প্রক্সি খোঁজা
+    # Find working proxy
     working_proxy = find_working_proxy(proxies)
     
     if not working_proxy:
-        print(" No working proxy found!")
+        print("No working proxy found!")
         return
     
-    print(f"\n Using proxy: {working_proxy}")
+    print(f"\nUsing proxy: {working_proxy}")
     
-    # ডাটা সংগ্রহ
+    # Fetch channel data
     channel_data, active_count = fetch_channel_data(working_proxy, channels)
     
     if not channel_data:
-        print("❌ No channel data!")
+        print("No channel data!")
         return
     
-    # ফাইল তৈরি
-    print("\n Creating output files...")
+    # Create output files
+    print("\nCreating output files...")
     
     json_m3u = create_json_m3u(channel_data)
     with open('kbs-nsplayer.m3u', 'w', encoding='utf-8') as f:
@@ -266,15 +266,15 @@ def main():
     with open('kbs-data.json', 'w', encoding='utf-8') as f:
         json.dump(kbs_data, f, indent=2, ensure_ascii=False)
     
-    # channel_code.txt আপডেট (নতুন চ্যানেল থাকলে)
+    # Update channel_code.txt
     save_channel_codes(channels)
     
     print("\n" + "=" * 70)
-    print(" SUCCESS!")
+    print("SUCCESS!")
     print("=" * 70)
-    print(f"\n Active channels: {active_count}/{len(channel_data)}")
+    print(f"\nActive channels: {active_count}/{len(channel_data)}")
     
-    print("\n Active Channels:")
+    print("\nActive Channels:")
     for ch in channel_data:
         if ch['active']:
             print(f"   • {ch['name']} ({ch['code']})")
