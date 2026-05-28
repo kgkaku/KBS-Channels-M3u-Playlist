@@ -1,0 +1,37 @@
+name: Update KBS Streams
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # প্রতি ৬ ঘণ্টায় রান হবে
+  workflow_dispatch:        # ম্যানুয়ালি রান করার জন্য
+
+permissions:
+  contents: write
+
+jobs:
+  update-kbs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4
+      
+      - name: Run KBS Stream Fetcher
+        run: python X.py
+      
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add channel_code.txt kbs-nsplayer.m3u kbs-extvlcopt.m3u kbs-data.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update KBS streams [skip ci]"
+          git push
